@@ -14,12 +14,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm install
-      - run: npm run build # 这一步会生成 dist 目录
+
+      # 使用 npm ci 替代 npm install
+      # npm ci 会根据 package-lock.json 干净地安装依赖，适合自动化环境
+      - name: Install dependencies
+        run: npm ci
+
+      # 关键步骤：手动修复可能存在的权限问题
+      # 确保 node_modules 中的所有二进制文件都有执行权限
+      - name: Fix permissions
+        run: chmod -R +x node_modules/.bin
+
+      - name: Build project
+        run: npm run build # 这一步会生成 dist 目录
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
